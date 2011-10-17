@@ -13,11 +13,11 @@ in three places, often something like:
 
 Create a symlink to the schema directory that is used by those programs
 e.g.:
-	ln -s /etc/openldap/schema .
+	ln -s /etc/openldap/schema ../schema/std
 
 Now, whenever you need this test environment, you do:
 
-	cd ../devslapd
+	cd /path/to/this/devslapd
 	. setup.sh
 
 You can then use commands like:
