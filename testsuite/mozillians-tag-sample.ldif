@@ -1,0 +1,57 @@
+# Sample tag groups
+
+dn: uniqueIdentifier=ab83c301007f,ou=tags,dc=mozillians,dc=org
+objectClass: mozilliansGroup
+uniqueIdentifier: ab83c301007f
+cn: Dinosaur Food Group
+cn: Dinofood
+displayName: Dinosaur Food Group
+description: We provide food for the dinosaur. We also research new flavours. Anyone may join this group. (This group used to be called Dinofood)
+member: uniqueIdentifier=7f3a67u000002,ou=people,dc=mozillians,dc=org
+member: uniqueIdentifier=7f3a67u000003,ou=people,dc=mozillians,dc=org
+member: uniqueIdentifier=7f3a67u000010,ou=people,dc=mozillians,dc=org
+member: uniqueIdentifier=7f3a67u000065,ou=people,dc=mozillians,dc=org
+member: uniqueIdentifier=7f3a67u000083,ou=people,dc=mozillians,dc=org
+
+dn: uniqueIdentifier=bbc3c3010011,ou=tags,dc=mozillians,dc=org
+objectClass: mozilliansGroup
+uniqueIdentifier: bbc3c3010011
+cn: Kiwi
+displayName: Kiwi
+description: People who come from New Zealand
+member: uniqueIdentifier=7f3a67u000094,ou=people,dc=mozillians,dc=org
+member: uniqueIdentifier=7f3a67u000093,ou=people,dc=mozillians,dc=org
+member: uniqueIdentifier=7f3a67u000073,ou=people,dc=mozillians,dc=org
+
+dn: uniqueIdentifier=00458b010abc,ou=tags,dc=mozillians,dc=org
+objectClass: mozilliansGroup
+uniqueIdentifier: 00458b010abc
+cn: mozpaid
+displayName: Mozpaid
+description: Mozilla Employees
+mozilliansEditGroup: uniqueIdentifier=000000000001,ou=tags,dc=mozillians,dc=org
+member: uniqueIdentifier=7f3a67u000032,ou=people,dc=mozillians,dc=org
+member: uniqueIdentifier=7f3a67u000090,ou=people,dc=mozillians,dc=org
+member: uniqueIdentifier=7f3a67u000073,ou=people,dc=mozillians,dc=org
+member: uniqueIdentifier=1,ou=people,dc=mozillians,dc=org
+member: uniqueIdentifier=2,ou=people,dc=mozillians,dc=org
+
+dn: uniqueIdentifier=000000000001,ou=tags,dc=mozillians,dc=org
+objectClass: mozilliansGroup
+uniqueIdentifier: 000000000001
+cn: Big Moz
+displayName: Big Moz
+description: Big Powerful Mozillians - people who can control certain restricted tags
+mozilliansEditGroup: uniqueIdentifier=000000000001,ou=tags,dc=mozillians,dc=org
+member: uniqueIdentifier=1,ou=people,dc=mozillians,dc=org
+member: uniqueIdentifier=2,ou=people,dc=mozillians,dc=org
+
+dn: uniqueIdentifier=ab83c30100aa,ou=tags,dc=mozillians,dc=org
+objectClass: mozilliansGroup
+uniqueIdentifier: ab83c30100aa
+cn: Matts Droogs
+displayName: Matt's Droogs
+description: Friends of Matthew Boulis
+owner: uniqueIdentifier=7f3a67u000002,ou=people,dc=mozillians,dc=org
+member: uniqueIdentifier=7f3a67u000073,ou=people,dc=mozillians,dc=org
+

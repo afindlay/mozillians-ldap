@@ -136,3 +136,32 @@ objectclass: textTableEntry
 textTableKey: irc://irc.mozilla.org/
 textTableValue: Mozilla IRC nickname
 
+# Sample tags/groups
+dn: uniqueIdentifier=test-tag-001,ou=tags,dc=mozillians,dc=org
+objectClass: mozilliansGroup
+uniqueIdentifier: test-tag-001
+cn: Test Tag 001
+displayName: Test Tag 001
+description: Tag 001 used for testing - an open tag with one applicant and one Mozillian member
+member: uniqueIdentifier=test001,ou=people,dc=mozillians,dc=org
+member: uniqueIdentifier=test011,ou=people,dc=mozillians,dc=org
+
+dn: uniqueIdentifier=test-tag-002,ou=tags,dc=mozillians,dc=org
+objectClass: mozilliansGroup
+uniqueIdentifier: test-tag-002
+cn: Test Tag 002
+displayName: Test Tag 002
+description: Tag 002 used for testing - a controlled tag with one applicant and one Mozillian member
+mozilliansEditGroup: uniqueIdentifier=test-tag-001,ou=tags,dc=mozillians,dc=org
+member: uniqueIdentifier=test003,ou=people,dc=mozillians,dc=org
+member: uniqueIdentifier=test013,ou=people,dc=mozillians,dc=org
+
+dn: uniqueIdentifier=test-tag-002,ou=tags,dc=mozillians,dc=org
+objectClass: mozilliansGroup
+uniqueIdentifier: test-tag-002
+cn: Test Tag 002
+displayName: Test Tag 002
+description: Tag 002 used for testing - an open tag with bogus members
+member: uniqueIdentifier=test901,ou=people,dc=mozillians,dc=org
+member: uniqueIdentifier=test911,ou=people,dc=mozillians,dc=org
+
