@@ -49,6 +49,7 @@ ldap_sys999PW = 'secret'
 # DNs of some victims
 ldap_applicant002DN = 'uniqueIdentifier=test002,ou=people,dc=mozillians,dc=org'
 ldap_mozillian012DN = 'uniqueIdentifier=test012,ou=people,dc=mozillians,dc=org'
+ldap_mozillian012PW = 'secret'
 ldap_newuserDN = 'uniqueIdentifier=testnew,ou=people,dc=mozillians,dc=org'
 ldap_sys900DN = 'uid=test900,ou=accounts,ou=system,dc=mozillians,dc=org'
 ldap_mozillian013DN = 'uniqueIdentifier=test013,ou=people,dc=mozillians,dc=org'
@@ -58,6 +59,15 @@ ldap_table_entry_DN = 'textTableKey=irc://irc.mozilla.org/,cn=test-table-1,ou=ta
 ldap_table_new_entry_DN = 'textTableKey=a,cn=test-table-1,ou=tables,dc=mozillians,dc=org'
 test_group = 'cn=test987,ou=groups,ou=system,dc=mozillians,dc=org'
 
+# DNs of some tags/groups
+# Tag 1 is an open tag with two members
+test_tag_1 = 'uniqueIdentifier=test-tag-001,ou=tags,dc=mozillians,dc=org'
+# Tag 2 may only be modified by members of tag 1
+test_tag_2 = 'uniqueIdentifier=test-tag-002,ou=tags,dc=mozillians,dc=org'
+# Tag 3 is an open tag with bogus members
+test_tag_3 = 'uniqueIdentifier=test-tag-003,ou=tags,dc=mozillians,dc=org'
+# Tag 999 does not exist
+test_tag_999 = 'uniqueIdentifier=test-tag-999,ou=tags,dc=mozillians,dc=org'
 
 # The root of the system part of the DIT
 system_suffix = 'ou=system,dc=mozillians,dc=org'
@@ -180,6 +190,9 @@ def setUpCommon(self):
 
 	self.ldap_mozillian011 = ldap.initialize(ldap_url)
 	self.ldap_mozillian011.simple_bind_s(ldap_mozillian011DN,ldap_mozillian011PW)
+
+	self.ldap_mozillian012 = ldap.initialize(ldap_url)
+	self.ldap_mozillian012.simple_bind_s(ldap_mozillian012DN,ldap_mozillian012PW)
 
 	self.ldap_sys999 = ldap.initialize(ldap_url)
 	self.ldap_sys999.simple_bind_s(ldap_sys999DN,ldap_sys999PW)
@@ -877,6 +890,316 @@ class LdapUserTests(unittest.TestCase):
         self.assertRaises(ldap.CONSTRAINT_VIOLATION, lambda:\
                           self.ldap_rootDN.modify_s(ldap_mozillian011DN, modlist))
 
+    def test_T10010_anon_search_tag(self):
+	# Anon searching for a tag entry
+	try:
+	    res = self.ldap_anon.search_s(
+		    ldap_suffix,
+		    ldap.SCOPE_SUBTREE,
+		    filterstr='(&(cn=Test Tag 001)(objectclass=mozilliansGroup))' )
+        except ldap.LDAPError:
+	    self.fail( "Anon cannot search a tag " + str(sys.exc_info()[0]) )
+
+	self.assertEqual( len(res), 1,
+		"Anon search for (cn=Test Tag 001) should return exactly one entry. We got "+str(len(res)) )
+
+    def test_T10020_applicant_search_tag(self):
+	# applicant searching for a tag entry
+	try:
+	    res = self.ldap_applicant001.search_s(
+		    ldap_suffix,
+		    ldap.SCOPE_SUBTREE,
+		    filterstr='(&(member=' + ldap_applicant001DN + ')(objectclass=mozilliansGroup))' )
+        except ldap.LDAPError:
+	    self.fail( "Applicant cannot search for self in a group " + str(sys.exc_info()[0]) )
+
+	self.assertEqual( len(res), 1,
+		"Applicant search for self in a group should return exactly one entry. We got "+str(len(res)) )
+        num_members = len(getAttrValueList(res[0],'member'))
+	self.assertEqual( num_members, 0,
+		"Applicant should not see member values in tags. We got "+str(num_members) )
+
+    def test_T10020_applicant_search_other_tag(self):
+	# applicant searching for someone else in a tag entry
+	try:
+	    res = self.ldap_applicant001.search_s(
+		    ldap_suffix,
+		    ldap.SCOPE_SUBTREE,
+		    filterstr='(&(member=' + ldap_mozillian011DN + ')(objectclass=mozilliansGroup))' )
+        except ldap.LDAPError:
+	    self.fail( "Applicant cannot search for mozillian in a group " + str(sys.exc_info()[0]) )
+
+	self.assertEqual( len(res), 0,
+		"Applicant search for mozillian in a group should return no entries. We got "+str(len(res)) )
+
+    def test_T10010_anon_read_tag_attrs(self):
+	# Anon reading public attributes in a tag entry
+	try:
+	    res = self.ldap_anon.search_s(
+		    test_tag_1,
+		    ldap.SCOPE_BASE,
+		    filterstr='(objectclass=*)' )
+        except ldap.LDAPError:
+	    self.fail( "Anon cannot read a tag " + str(sys.exc_info()[0]) )
+
+	if not getAttrValue(res[0],'objectClass'):
+	    self.fail( "Anon should see the objectClass in a tag" )
+	if not getAttrValue(res[0],'cn'):
+	    self.fail( "Anon should see the cn in a tag" )
+	if not getAttrValue(res[0],'uniqueIdentifier'):
+	    self.fail( "Anon should see the uniqueIdentifier in a tag" )
+	if not getAttrValue(res[0],'displayName'):
+	    self.fail( "Anon should see the displayName in a tag" )
+	if not getAttrValue(res[0],'description'):
+	    self.fail( "Anon should see the description in a tag" )
+	if getAttrValue(res[0],'member'):
+	    self.fail( "Anon should NOT see the members of a tag" )
+
+    def test_T10015_mozillian_read_tag_attrs(self):
+	# Anon reading public attributes in a tag entry
+	try:
+	    res = self.ldap_mozillian011.search_s(
+		    test_tag_1,
+		    ldap.SCOPE_BASE,
+		    filterstr='(objectclass=*)' )
+        except ldap.LDAPError:
+	    self.fail( "Mozillian cannot read a tag " + str(sys.exc_info()[0]) )
+
+	if not getAttrValue(res[0],'objectClass'):
+	    self.fail( "Mozillian should see the objectClass in a tag" )
+	if not getAttrValue(res[0],'cn'):
+	    self.fail( "Mozillian should see the cn in a tag" )
+	if not getAttrValue(res[0],'uniqueIdentifier'):
+	    self.fail( "Mozillian should see the uniqueIdentifier in a tag" )
+	if not getAttrValue(res[0],'displayName'):
+	    self.fail( "Mozillian should see the displayName in a tag" )
+	if not getAttrValue(res[0],'description'):
+	    self.fail( "Mozillian should see the description in a tag" )
+        num_members = len(getAttrValueList(res[0],'member'))
+	self.assertEqual( num_members, 2,
+		"Mozillian should see two member values in Test Tag 001. We got "+str(num_members) )
+
+    def test_T10010_applicant_read_tag_attrs(self):
+	# Applicant reading a tag entry
+	try:
+	    res = self.ldap_applicant001.search_s(
+		    test_tag_1,
+		    ldap.SCOPE_BASE,
+		    filterstr='(objectclass=*)' )
+        except ldap.LDAPError:
+	    self.fail( "Applicant cannot read a tag " + str(sys.exc_info()[0]) )
+
+	if not getAttrValue(res[0],'objectClass'):
+	    self.fail( "Applicant should see the objectClass in a tag" )
+	if not getAttrValue(res[0],'cn'):
+	    self.fail( "Applicant should see the cn in a tag" )
+	if not getAttrValue(res[0],'uniqueIdentifier'):
+	    self.fail( "Applicant should see the uniqueIdentifier in a tag" )
+	if not getAttrValue(res[0],'displayName'):
+	    self.fail( "Applicant should see the displayName in a tag" )
+	if not getAttrValue(res[0],'description'):
+	    self.fail( "Applicant should see the description in a tag" )
+        num_members = len(getAttrValueList(res[0],'member'))
+	self.assertEqual( num_members, 0,
+		"Applicant should not see member values in Test Tag 001. We got "+str(num_members) )
+
+
+    def test_T10030_mozillian_tag_another_in_controlled_tag(self):
+        try:
+            # Add DN to a controlled tag
+	    self.ldap_mozillian011.modify_s(
+		    test_tag_2,
+		    [ (ldap.MOD_ADD,'member',ldap_mozillian012DN) ]
+		)
+        except ldap.LDAPError:
+	    self.fail( "Mozillian cannot add member to a controlled group " + str(sys.exc_info()[0]) )
+
+    def test_T10030_mozillian_fake_tag_another_in_controlled_tag(self):
+        try:
+            # First change the edit group to one that we are not in
+	    self.ldap_mozillian011.modify_s(
+		    test_tag_2,
+		    [ (ldap.MOD_REPLACE,'mozilliansEditGroup',test_tag_3) ]
+		)
+        except ldap.LDAPError:
+	    self.fail( "Mozillian cannot change control group of a controlled group " + str(sys.exc_info()[0]) )
+        # Now try to put our own DN into the controlled group as a member
+        self.assertRaises(ldap.INSUFFICIENT_ACCESS, lambda:\
+	      self.ldap_mozillian011.modify_s( test_tag_2, [ (ldap.MOD_ADD,'member',ldap_mozillian011DN) ]))
+
+    def test_T10030_mozillian_rename_controlled_tag(self):
+        try:
+            # Change the names in a controlled tag
+	    self.ldap_mozillian011.modify_s(
+		    test_tag_2,
+		    [ (ldap.MOD_REPLACE,'cn','Duo!'),(ldap.MOD_REPLACE,'displayName','Deux') ]
+		)
+        except ldap.LDAPError:
+	    self.fail( "Mozillian cannot change attributes in a controlled group " + str(sys.exc_info()[0]) )
+
+    def test_T10050_mozillian_tag_self(self):
+        try:
+            # Add our own DN to an open tag
+	    self.ldap_mozillian011.modify_s(
+		    test_tag_3,
+		    [ (ldap.MOD_ADD,'member',ldap_mozillian011DN) ]
+		)
+        except ldap.LDAPError:
+	    self.fail( "Mozillian cannot add self to a group " + str(sys.exc_info()[0]) )
+
+    def test_T10055_mozillian_untag_self(self):
+        try:
+            # Remove our own DN from an open tag
+	    self.ldap_mozillian011.modify_s(
+		    test_tag_1,
+		    [ (ldap.MOD_DELETE,'member',ldap_mozillian011DN) ]
+		)
+        except ldap.LDAPError:
+	    self.fail( "Mozillian cannot remove self from a group " + str(sys.exc_info()[0]) )
+
+    def test_T10050_mozillian_tag_other(self):
+        self.assertRaises(ldap.INSUFFICIENT_ACCESS, lambda:\
+	      self.ldap_mozillian011.modify_s( test_tag_3, [ (ldap.MOD_ADD,'member',ldap_mozillian012DN) ]))
+
+    def test_T10050_applicant_tag_other(self):
+        self.assertRaises(ldap.INSUFFICIENT_ACCESS, lambda:\
+	      self.ldap_applicant001.modify_s( test_tag_3, [ (ldap.MOD_ADD,'member',ldap_mozillian012DN) ]))
+
+
+    def test_T10050_applicant_tag_self(self):
+        try:
+            # Add our own DN to an open tag
+	    self.ldap_applicant001.modify_s(
+		    test_tag_3,
+		    [ (ldap.MOD_ADD,'member',ldap_applicant001DN) ]
+		)
+        except ldap.LDAPError:
+	    self.fail( "Applicant cannot add self to a group " + str(sys.exc_info()[0]) )
+
+    def test_T10055_applicant_untag_self(self):
+        try:
+            # Remove our own DN from an open tag
+	    self.ldap_applicant001.modify_s(
+		    test_tag_1,
+		    [ (ldap.MOD_DELETE,'member',ldap_applicant001DN) ]
+		)
+        except ldap.LDAPError:
+	    self.fail( "Applicant cannot delete self from a group " + str(sys.exc_info()[0]) )
+
+    def test_T10060_mozillian_add_group(self):
+	try:
+	    self.ldap_mozillian011.add_s(
+		    test_tag_999,
+		    [
+			('objectClass', 'mozilliansGroup'),
+			('uniqueIdentifier', 'test-tag-999'),
+			('cn', 'Test Tag 999'),
+			('displayName', 'Test Tag 999'),
+			('description', 'test_T10060_mozillian_add_group'),
+			('mozilliansEditGroup', test_tag_1)
+		    ]
+		)
+	    # Make sure that we clear this entry up afterwards
+	    entry_list.append(test_tag_999)
+        except ldap.LDAPError:
+	    self.fail( "Mozillian cannot add tag entry "+test_tag_999+" " + str(sys.exc_info()[0]) )
+
+	# Now try modifying it. This should work as we are the creator
+	try:
+	    self.ldap_mozillian011.modify_s(
+	            test_tag_999,
+		    [ (ldap.MOD_REPLACE,'cn','Better name for 9999') ]
+		)
+        except ldap.LDAPError:
+	    self.fail( "Mozillian cannot modify own tag entry "+test_tag_999+" " + str(sys.exc_info()[0]) )
+
+    def test_T10061_mozillian_delete_own_group(self):
+	# First create a group so that we will own it
+	try:
+	    self.ldap_mozillian011.add_s(
+		    test_tag_999,
+		    [
+			('objectClass', 'mozilliansGroup'),
+			('uniqueIdentifier', 'test-tag-999'),
+			('cn', 'Test Tag 999'),
+			('displayName', 'Test Tag 999'),
+			('description', 'test_T10060_mozillian_add_group'),
+		    ]
+		)
+	    # Make sure that we clear this entry up afterwards
+	    entry_list.append(test_tag_999)
+        except ldap.LDAPError:
+	    self.fail( "Mozillian cannot add tag entry "+test_tag_999+" " + str(sys.exc_info()[0]) )
+
+	# Now try deleting it. This should work as we are the creator
+	try:
+	    self.ldap_mozillian011.delete_s( test_tag_999 )
+        except ldap.LDAPError:
+	    self.fail( "Mozillian cannot delete own tag entry "+test_tag_999+" " + str(sys.exc_info()[0]) )
+
+    def test_T10061_mozillian_fake_delete_group(self):
+	# First create a group so that we will own it
+	try:
+	    self.ldap_mozillian011.add_s(
+		    test_tag_999,
+		    [
+			('objectClass', 'mozilliansGroup'),
+			('uniqueIdentifier', 'test-tag-999'),
+			('cn', 'Test Tag 999'),
+			('displayName', 'Test Tag 999'),
+			('description', 'test_T10060_mozillian_add_group'),
+		    ]
+		)
+	    # Make sure that we clear this entry up afterwards
+	    entry_list.append(test_tag_999)
+        except ldap.LDAPError:
+	    self.fail( "Mozillian cannot add tag entry "+test_tag_999+" " + str(sys.exc_info()[0]) )
+
+	# Now try deleting it. This should not work as we are doing it as someone else
+	self.assertRaises(ldap.INSUFFICIENT_ACCESS, lambda:\
+	    self.ldap_mozillian012.delete_s( test_tag_999 ))
+
+    def test_T10070_mozillian_fake_modify_group(self):
+	# Create an entry as mozillian011
+	try:
+	    self.ldap_mozillian011.add_s(
+		    test_tag_999,
+		    [
+			('objectClass', 'mozilliansGroup'),
+			('uniqueIdentifier', 'test-tag-999'),
+			('cn', 'Test Tag 999'),
+			('displayName', 'Test Tag 999'),
+			('description', 'test_T10060_mozillian_add_group'),
+			('mozilliansEditGroup', test_tag_1)
+		    ]
+		)
+	    # Make sure that we clear this entry up afterwards
+	    entry_list.append(test_tag_999)
+        except ldap.LDAPError:
+	    self.fail( "Mozillian cannot add tag entry "+test_tag_999+" " + str(sys.exc_info()[0]) )
+
+	# Now try modifying it as mozillian012. This should fail as we are not the creator
+	self.assertRaises(ldap.INSUFFICIENT_ACCESS, lambda:\
+	    self.ldap_mozillian012.modify_s(
+	            test_tag_999,
+		    [ (ldap.MOD_REPLACE,'cn','Worse name for 9999') ]
+		))
+
+
+    def test_T10065_applicant_add_group(self):
+        self.assertRaises(ldap.INSUFFICIENT_ACCESS, lambda:\
+	    self.ldap_applicant001.add_s(
+		    test_tag_999,
+		    [
+			('objectClass', 'mozilliansGroup'),
+			('uniqueIdentifier', 'test-tag-999'),
+			('cn', 'Test Tag 999'),
+			('displayName', 'Test Tag 999'),
+			('description', 'test_T10065_applicant_add_group')
+		    ]
+		))
+	# Make sure that we clear this entry up afterwards
+	entry_list.append(test_tag_999)
 
 
 class LdapMonitorUserTests(unittest.TestCase):
@@ -1419,6 +1742,60 @@ class LdapAdminsUserTests(unittest.TestCase):
         except ldap.LDAPError:
 	    self.fail( "LDAP Admin cannot enumerate the whole set of users " +
 	            str(sys.exc_info()[0]) )
+
+    def test_T2080_ldapadmin_change_tag_member(self):
+        try:
+            # Add a DN to an open tag
+	    self.ldap_sys999.modify_s(
+		    test_tag_3,
+		    [ (ldap.MOD_ADD,'member',ldap_mozillian011DN) ]
+		)
+        except ldap.LDAPError:
+	    self.fail( "LDAP Admin cannot add member to a group " + str(sys.exc_info()[0]) )
+
+    def test_T2080_ldapadmin_change_tag_name(self):
+        try:
+            # Change naming attributes on a tag
+	    self.ldap_sys999.modify_s(
+		    test_tag_3,
+		    [ (ldap.MOD_REPLACE,'cn','New name for tag 3'),
+		      (ldap.MOD_REPLACE,'displayName','New displayname for tag 3'),
+		    ]
+		)
+        except ldap.LDAPError:
+	    self.fail( "LDAP Admin cannot change name of a group " + str(sys.exc_info()[0]) )
+
+    def test_T2080_ldapadmin_delete_tag(self):
+	try:
+	    self.ldap_sys999.delete_s( test_tag_3 )
+        except ldap.LDAPError:
+	    self.fail( "LDAP Admin cannot delete a tag entry "+test_tag_3+" " + str(sys.exc_info()[0]) )
+    def test_T2080_ldapadmin_make_group_controlled(self):
+	# Mozillian creates the group
+	try:
+	    self.ldap_mozillian011.add_s(
+		    test_tag_999,
+		    [
+			('objectClass', 'mozilliansGroup'),
+			('uniqueIdentifier', 'test-tag-999'),
+			('cn', 'Test Tag 999'),
+			('displayName', 'Test Tag 999'),
+			('description', 'test_T10060_mozillian_add_group'),
+		    ]
+		)
+	    # Make sure that we clear this entry up afterwards
+	    entry_list.append(test_tag_999)
+        except ldap.LDAPError:
+	    self.fail( "Mozillian cannot add tag entry "+test_tag_999+" " + str(sys.exc_info()[0]) )
+
+	# Now make it controlled by a group that we are not a member of.
+	try:
+	    self.ldap_sys999.modify_s(
+	            test_tag_999,
+		    [ (ldap.MOD_ADD,'mozilliansEditGroup',test_tag_1) ]
+		)
+        except ldap.LDAPError:
+	    self.fail( "LDAP Admin cannot make tag entry controlled "+test_tag_999+" " + str(sys.exc_info()[0]) )
 
 
 class RegistrationAgentTests(unittest.TestCase):

@@ -50,6 +50,13 @@ objectclass ( 1.3.6.1.4.1.13769.3000.3.1
         MAY ( cn $ givenName $ sn $ displayname $ mail $ uid $ telephoneNumber $ jpegPhoto $ description )
         )
 
+objectclass ( 1.3.6.1.4.1.13769.3000.3.2
+	NAME 'attrsetTagDescription'
+        DESC 'Attributes that describe a tag/group but do not reveal membership'
+        AUXILIARY
+        MAY ( objectClass $ uniqueIdentifier $ cn $ displayname $ description )
+        )
+
 # Replicators have overriding read-only access to everything
 
 access to *
@@ -87,6 +94,72 @@ access to dn.children="ou=accounts,ou=system,dc=mozillians,dc=org" attrs="userPa
 
 access to dn.subtree="ou=system,dc=mozillians,dc=org"
 	by * none
+
+# Tags / Groups
+# These are largely public-read but we control access to membership information
+
+# Mozillians need write access to children of the tags tree
+# so that they can create new tags
+access to dn.exact="ou=tags,dc=mozillians,dc=org" attrs="children"
+	by set="user/mozilliansVouchedBy" write
+	by group/groupOfNames/member="cn=LDAPAdmins,ou=groups,ou=system,dc=mozillians,dc=org" write
+        by * break
+
+# Everyone can read the root of the tags tree
+access to dn.exact="ou=tags,dc=mozillians,dc=org"
+        by * read
+
+# We allow Mozillians to create new tags
+# Others can only read
+access to dn.subtree="ou=tags,dc=mozillians,dc=org" attrs="entry"
+	by set="user & this/creatorsName" write
+	by group/groupOfNames/member="cn=LDAPAdmins,ou=groups,ou=system,dc=mozillians,dc=org" write
+	by set="user/mozilliansVouchedBy" add
+        by * read
+
+# Admin can always modify the control group pointer
+access to dn.subtree="ou=tags,dc=mozillians,dc=org" attrs="mozilliansEditGroup"
+	by group/groupOfNames/member="cn=LDAPAdmins,ou=groups,ou=system,dc=mozillians,dc=org" write
+	by * break
+	
+# Controlled tags have special permission settings
+# We use the '+perm' notation here for consistency with the next rule
+# NOTE: we would like to prevent applicants who are mistakenly added to
+# a control group from exercising this power, but that is hard...
+access to dn.subtree="ou=tags,dc=mozillians,dc=org" filter="(mozilliansEditGroup=*)"
+        by set="user & this/mozilliansEditGroup/member" write
+	by group/groupOfNames/member="cn=LDAPAdmins,ou=groups,ou=system,dc=mozillians,dc=org" write
+	by set="user & this/creatorsName" add
+	by set="user/mozilliansVouchedBy" +dxcsr
+	by users self+cs
+	by * break
+
+# The entry creator can modify the naming and descriptive attributes
+# (we need this to allow creation in the first place)
+# Others only get to read and search
+access to dn.subtree="ou=tags,dc=mozillians,dc=org" attrs="@attrsetTagDescription"
+	by set="user & this/creatorsName" write
+	by group/groupOfNames/member="cn=LDAPAdmins,ou=groups,ou=system,dc=mozillians,dc=org" write
+        by * read
+
+# Mozillians can read members of tags, Applicants can only search
+# All users are allowed to add themselves to tags
+# All users are allowed to remove themselves from tags
+# We give the write permission first then continue to see if
+# we should add more permissions.
+access to dn.subtree="ou=tags,dc=mozillians,dc=org" attrs="member"
+	by group/groupOfNames/member="cn=LDAPAdmins,ou=groups,ou=system,dc=mozillians,dc=org" write
+	by users self+w continue
+	by set="user/mozilliansVouchedBy" +dxcsr
+        by users self+cs
+	by * none
+
+# Mozillians can read all other attributes, but others may not
+access to dn.subtree="ou=tags,dc=mozillians,dc=org"
+	by group/groupOfNames/member="cn=LDAPAdmins,ou=groups,ou=system,dc=mozillians,dc=org" write
+	by set="user/mozilliansVouchedBy" read
+        by * none
+
 
 # Deal with lookup tables
 # All authenticated users may read and search

@@ -156,12 +156,12 @@ mozilliansEditGroup: uniqueIdentifier=test-tag-001,ou=tags,dc=mozillians,dc=org
 member: uniqueIdentifier=test003,ou=people,dc=mozillians,dc=org
 member: uniqueIdentifier=test013,ou=people,dc=mozillians,dc=org
 
-dn: uniqueIdentifier=test-tag-002,ou=tags,dc=mozillians,dc=org
+dn: uniqueIdentifier=test-tag-003,ou=tags,dc=mozillians,dc=org
 objectClass: mozilliansGroup
-uniqueIdentifier: test-tag-002
-cn: Test Tag 002
-displayName: Test Tag 002
-description: Tag 002 used for testing - an open tag with bogus members
+uniqueIdentifier: test-tag-003
+cn: Test Tag 003
+displayName: Test Tag 003
+description: Tag 003 used for testing - an open tag with bogus members
 member: uniqueIdentifier=test901,ou=people,dc=mozillians,dc=org
 member: uniqueIdentifier=test911,ou=people,dc=mozillians,dc=org
 

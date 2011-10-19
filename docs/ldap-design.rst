@@ -10,8 +10,9 @@ called *mozilliansPerson*
 As far as possible, the LDAP design avoids creating new attributes -
 particularly attributes specific to individual remote services (bugzilla, twitter, etc)
 
-Later releases need an expandable store for servicename:ID tuples.
-These will be implemented as entries beneath the main user entry.
+An expandable store for servicename:ID tuples was also introduced for
+Release 1.0 but in that release it was only used for the Mozilla IRC Nick.
+This store is implemented as entries beneath the main user entry.
 
 The *Privacy Release* needs the ability for each user to control the
 visibility of each item of data individually.
@@ -28,8 +29,7 @@ It will be an early requirement to have test data and ACLs that exercise
 a variety of data-visibility scenarios so that devs can be sure that
 code is robust when no data is provided.
 
-Tags will not be in 1.0 - probably will be in Security Release,
-and probably implemented as LDAP groups. One use-case is to list all
+Tags will be implemented as LDAP groups. One use-case is to list all
 members with a specific tag. This would be inefficient if done using
 basic LDAP commands and no server-side support, so we may need to enable
 the memberOf overlay (note that this acts at create/modify time rather
@@ -38,6 +38,8 @@ than during search, so must turn it on before creating any groups).
 Most tags will be open for people to associate with, but some will be
 "blessed" in the sense that they can only be awarded to users by a defined list of people.
 That list will probably be defined by the possession of another tag.
+
+Mozillians will be able to create new tags.
 
 ==================
 Authentication
@@ -69,11 +71,13 @@ session, but at the cost of requiring clients to support SASL.
 It also allows the uid attribute to be completely protected against anon search
 if desired.
 
+Mozilla also plans to support BrowserID: http://browserid.org/ - this will require a SASL plug-in.
+
 ---------------------------------
 Username considerations
 ---------------------------------
 
-Usernames will show up in URLs, so the form chosen should be clean in that environment.
+Usernames may show up in URLs, so the form chosen should be clean in that environment.
 
 Usernames cannot be completely hidden from public view,
 so they should not expose data that the user would prefer to keep hidden.
@@ -305,6 +309,43 @@ A convenient value would be the precise time of creation of the entry
 
 
 =================================
+Tags / Groups
+=================================
+
+Mozillians.org supports a set of groups or tags that people can associate themselves with.
+This allows people to show their interest in particular topics.
+
+Most groups are open, and any Mozillian or Applicant can add themselves.
+Some groups are controlled, and can only be edited by members of some other defined group
+(it would be wise to make that group a controlled group too!)
+
+Group/Tag entries look like this:
+
+    dn: uniqueIdentifier=ab83c301007f,ou=tags,dc=mozillians,dc=org
+    objectClass: mozilliansGroup
+    uniqueIdentifier: ab83c301007f
+    cn: Dinosaur Food Group
+    cn: Dinofood
+    displayName: Dinosaur Food Group
+    description: We provide food for the dinosaur. We also research new flavours. Anyone may join this group. (This group used to be called Dinofood)
+    member: uniqueIdentifier=7f3a67u000002,ou=people,dc=mozillians,dc=org
+    member: uniqueIdentifier=7f3a67u000003,ou=people,dc=mozillians,dc=org
+    member: uniqueIdentifier=7f3a67u000010,ou=people,dc=mozillians,dc=org
+    member: uniqueIdentifier=7f3a67u000065,ou=people,dc=mozillians,dc=org
+    member: uniqueIdentifier=7f3a67u000083,ou=people,dc=mozillians,dc=org
+
+To make the group 'controlled' add a mozilliansEditGroup attribute with value(s)
+pointing to the group of users who may edit the group:
+
+    mozilliansEditGroup: uniqueIdentifier=000000000001,ou=tags,dc=mozillians,dc=org
+
+The naming and descriptive attributes of a normal (open) group can only be changed
+by the person who created it.
+
+All attributes in controlled groups can be changed by members of the controlling group
+(and not by anyone else).
+
+=================================
 Lookup Tables
 =================================
 
@@ -399,6 +440,7 @@ The 'T' codes are cross-references to the ACL test suite
  * T2050 LDAPAdmin cannot see or modify any entries in the system tree
  * T2060 ??? LDAPAdmin may add new user entries
  * T2070 LDAPAdmin is not subject to size or time limits on searches
+ * T2080 LDAPAdmin can edit and delete Tags
 
  * T3010 regAgent may create new entries directly under ou=People - these must be inetOrgPerson/mozilliansPerson entries.
  * T3020 regAgent may populate certain attributes when creating entries: all user-modifiable attributes plus uniqueIdentifier, userPassword and objectClass
@@ -439,6 +481,18 @@ The 'T' codes are cross-references to the ACL test suite
  * T9024 Anon may not read or search lookup tables
  * T9025 Mozillians and Applicants may not change the content of any lookup tables
  * T9026 Any member of the manager group for a table may change the content
+
+ * T10010 All users including Anon may search and view the naming and descriptive attributes in Tag entries
+ * T10015 Mozillians may search and view all attributes in Tag entries
+ * T10020 Applicants may search for Tags that they are a member of but may not view the list of members
+ * T10030 Controlled Tags may only be modified by members of the defined edit group for that tag
+ * T10040 Members of a Tag's edit group may change any of its attributes to any legal value
+ * T10050 Mozillians and Applicants may add their own DN to the list of members of an open tag
+ * T10055 Mozillians and Applicants may delete their own DN from the list of members of an open tag
+ * T10060 Mozillians may create new Tag entries
+ * T10061 Mozillians may delete tags that they created
+ * T10065 Applicants may not create new Tag entries
+ * T10070 ??? The naming and descriptive attributes of open tags may only be changed by the tag's creator or LDAPAdmin ???
 
  * Anything not already mentioned above is prohibited
 
