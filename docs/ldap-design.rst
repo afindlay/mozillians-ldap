@@ -334,6 +334,12 @@ Group/Tag entries look like this:
     member: uniqueIdentifier=7f3a67u000065,ou=people,dc=mozillians,dc=org
     member: uniqueIdentifier=7f3a67u000083,ou=people,dc=mozillians,dc=org
 
+As with user entries, the DN is formed from a meaningless uniqueIdentifier.
+cn and displayName values will normally be identical. We use both to allow
+for smooth renaming of tags: displayName holds the current name, while cn holds
+the current name and all past names so that people can still find tags that
+they used to know about.
+
 To make the group 'controlled' add a mozilliansEditGroup attribute with value(s)
 pointing to the group of users who may edit the group:
 
