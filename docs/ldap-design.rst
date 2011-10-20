@@ -358,6 +358,10 @@ by the owner of the entry.
 All attributes in managed groups can be changed by members of the manager group
 (and not by anyone else).
 
+We use the *memberof* overlay to reflect group membership into user entries
+as *memberOf* attributes. These are not modifiable in the user entry, but they can
+make some searches much easier.
+
 =================================
 Lookup Tables
 =================================

@@ -1,3 +1,6 @@
+# Lots of users - some are Mozillians, some are Applicants
+# All the passwords are 'secret'
+#
 dn: uniqueIdentifier=7f3a67u000000,ou=people,dc=mozillians,dc=org
 objectclass: inetOrgPerson
 objectclass: person
