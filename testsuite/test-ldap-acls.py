@@ -1016,10 +1016,10 @@ class LdapUserTests(unittest.TestCase):
 
     def test_T10030_mozillian_fake_tag_another_in_controlled_tag(self):
         try:
-            # First change the edit group to one that we are not in
+            # First change the manager group to one that we are not in
 	    self.ldap_mozillian011.modify_s(
 		    test_tag_2,
-		    [ (ldap.MOD_REPLACE,'mozilliansEditGroup',test_tag_3) ]
+		    [ (ldap.MOD_REPLACE,'manager',test_tag_3) ]
 		)
         except ldap.LDAPError:
 	    self.fail( "Mozillian cannot change control group of a controlled group " + str(sys.exc_info()[0]) )
@@ -1096,7 +1096,8 @@ class LdapUserTests(unittest.TestCase):
 			('cn', 'Test Tag 999'),
 			('displayName', 'Test Tag 999'),
 			('description', 'test_T10060_mozillian_add_group'),
-			('mozilliansEditGroup', test_tag_1)
+			('owner', ldap_mozillian011DN),
+			('manager', test_tag_1)
 		    ]
 		)
 	    # Make sure that we clear this entry up afterwards
@@ -1124,6 +1125,7 @@ class LdapUserTests(unittest.TestCase):
 			('cn', 'Test Tag 999'),
 			('displayName', 'Test Tag 999'),
 			('description', 'test_T10060_mozillian_add_group'),
+			('owner', ldap_mozillian011DN),
 		    ]
 		)
 	    # Make sure that we clear this entry up afterwards
@@ -1148,6 +1150,7 @@ class LdapUserTests(unittest.TestCase):
 			('cn', 'Test Tag 999'),
 			('displayName', 'Test Tag 999'),
 			('description', 'test_T10060_mozillian_add_group'),
+			('owner', ldap_mozillian011DN),
 		    ]
 		)
 	    # Make sure that we clear this entry up afterwards
@@ -1170,7 +1173,8 @@ class LdapUserTests(unittest.TestCase):
 			('cn', 'Test Tag 999'),
 			('displayName', 'Test Tag 999'),
 			('description', 'test_T10060_mozillian_add_group'),
-			('mozilliansEditGroup', test_tag_1)
+			('owner', ldap_mozillian011DN),
+			('manager', test_tag_1)
 		    ]
 		)
 	    # Make sure that we clear this entry up afterwards
@@ -1186,7 +1190,7 @@ class LdapUserTests(unittest.TestCase):
 		))
 
 
-    def test_T10065_applicant_add_group(self):
+    def test_T10065_applicant_fake_add_group(self):
         self.assertRaises(ldap.INSUFFICIENT_ACCESS, lambda:\
 	    self.ldap_applicant001.add_s(
 		    test_tag_999,
@@ -1195,7 +1199,24 @@ class LdapUserTests(unittest.TestCase):
 			('uniqueIdentifier', 'test-tag-999'),
 			('cn', 'Test Tag 999'),
 			('displayName', 'Test Tag 999'),
-			('description', 'test_T10065_applicant_add_group')
+			('description', 'test_T10065_applicant_add_group'),
+			('owner', ldap_applicant001DN),
+			('manager', test_tag_1)
+		    ]
+		))
+	# Make sure that we clear this entry up afterwards
+	entry_list.append(test_tag_999)
+
+
+    def test_T10060_mozillian_fake_add_nongroup(self):
+        self.assertRaises(ldap.INSUFFICIENT_ACCESS, lambda:\
+	    self.ldap_mozillian011.add_s(
+		    test_tag_999,
+		    [
+			('objectClass', ['person','mozilliansObject']),
+			('uniqueIdentifier', 'test-tag-999'),
+			('cn', 'Test Tag 999'),
+			('sn', 'Test Tag 999'),
 		    ]
 		))
 	# Make sure that we clear this entry up afterwards
@@ -1781,6 +1802,7 @@ class LdapAdminsUserTests(unittest.TestCase):
 			('cn', 'Test Tag 999'),
 			('displayName', 'Test Tag 999'),
 			('description', 'test_T10060_mozillian_add_group'),
+			('owner', ldap_mozillian011DN)
 		    ]
 		)
 	    # Make sure that we clear this entry up afterwards
@@ -1788,11 +1810,11 @@ class LdapAdminsUserTests(unittest.TestCase):
         except ldap.LDAPError:
 	    self.fail( "Mozillian cannot add tag entry "+test_tag_999+" " + str(sys.exc_info()[0]) )
 
-	# Now make it controlled by a group that we are not a member of.
+	# Now make it managed by a group that we are not a member of.
 	try:
 	    self.ldap_sys999.modify_s(
 	            test_tag_999,
-		    [ (ldap.MOD_ADD,'mozilliansEditGroup',test_tag_1) ]
+		    [ (ldap.MOD_ADD,'manager',test_tag_1) ]
 		)
         except ldap.LDAPError:
 	    self.fail( "LDAP Admin cannot make tag entry controlled "+test_tag_999+" " + str(sys.exc_info()[0]) )

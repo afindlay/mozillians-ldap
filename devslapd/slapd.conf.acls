@@ -5,6 +5,7 @@
 # Andrew Findlay
 # andrew.findlay@skills-1st.co.uk
 # 20 June 2011
+# Updated 20 Oct 2011 for Tags/Groups
 
 # Enforce ACL rules on the content of entries that are about to be added
 
@@ -37,6 +38,15 @@ ditcontentrule ( 2.16.840.1.113730.3.2.2
 ditcontentrule ( 1.3.6.1.4.1.13769.3000.1.3
 	NAME 'dcrMozilliansLink'
 	DESC 'Control content of mozilliansLink entries'
+	)
+
+# Prevent unwanted objectclasses on group/tag entries
+#
+# In this case the rule simply prevents the addition of other object classes
+
+ditcontentrule ( 1.3.6.1.4.1.13769.3000.1.5
+	NAME 'dcrMozilliansGroup'
+	DESC 'Control content of mozilliansGroup entries'
 	)
 
 # We define some attribute sets as objectclasses for convenience.
@@ -110,36 +120,45 @@ access to dn.exact="ou=tags,dc=mozillians,dc=org"
         by * read
 
 # We allow Mozillians to create new tags
-# Others can only read
-access to dn.subtree="ou=tags,dc=mozillians,dc=org" attrs="entry"
-	by set="user & this/creatorsName" write
+# ...but they must set themselves as the initial owner
+# and they must use the correct objectclass
+# Note that Anon and Applicants are prevented from creating tags by the
+# attrs="children" rule above
+access to dn.onelevel="ou=tags,dc=mozillians,dc=org" attrs="entry" filter="(objectclass=mozilliansGroup)"
+	by set="user & this/owner" write
+	by set="user & this/owner/member" write
 	by group/groupOfNames/member="cn=LDAPAdmins,ou=groups,ou=system,dc=mozillians,dc=org" write
-	by set="user/mozilliansVouchedBy" add
         by * read
 
-# Admin can always modify the control group pointer
-access to dn.subtree="ou=tags,dc=mozillians,dc=org" attrs="mozilliansEditGroup"
+# Admin can always modify all tag attributes
+access to dn.onelevel="ou=tags,dc=mozillians,dc=org" filter="(objectclass=mozilliansGroup)"
 	by group/groupOfNames/member="cn=LDAPAdmins,ou=groups,ou=system,dc=mozillians,dc=org" write
 	by * break
 	
-# Controlled tags have special permission settings
+# Managed tags have special permission settings
 # We use the '+perm' notation here for consistency with the next rule
 # NOTE: we would like to prevent applicants who are mistakenly added to
-# a control group from exercising this power, but that is hard...
-access to dn.subtree="ou=tags,dc=mozillians,dc=org" filter="(mozilliansEditGroup=*)"
-        by set="user & this/mozilliansEditGroup/member" write
-	by group/groupOfNames/member="cn=LDAPAdmins,ou=groups,ou=system,dc=mozillians,dc=org" write
-	by set="user & this/creatorsName" add
+# a manager group from exercising this power, but that is hard...
+access to dn.subtree="ou=tags,dc=mozillians,dc=org" filter="(manager=*)"
+        by set="user & this/manager/member" write
+	by set="user & this/owner" write
+	by set="user & this/owner/member" write
 	by set="user/mozilliansVouchedBy" +dxcsr
 	by users self+cs
 	by * break
 
-# The entry creator can modify the naming and descriptive attributes
+# The entry owner can modify the owner attribute
+access to dn.subtree="ou=tags,dc=mozillians,dc=org" attrs="owner"
+	by set="user & this/owner" write
+	by set="user & this/owner/member" write
+	by * break
+
+# The entry owner can modify the naming and descriptive attributes
 # (we need this to allow creation in the first place)
 # Others only get to read and search
 access to dn.subtree="ou=tags,dc=mozillians,dc=org" attrs="@attrsetTagDescription"
-	by set="user & this/creatorsName" write
-	by group/groupOfNames/member="cn=LDAPAdmins,ou=groups,ou=system,dc=mozillians,dc=org" write
+	by set="user & this/owner" write
+	by set="user & this/owner/member" write
         by * read
 
 # Mozillians can read members of tags, Applicants can only search
@@ -148,7 +167,6 @@ access to dn.subtree="ou=tags,dc=mozillians,dc=org" attrs="@attrsetTagDescriptio
 # We give the write permission first then continue to see if
 # we should add more permissions.
 access to dn.subtree="ou=tags,dc=mozillians,dc=org" attrs="member"
-	by group/groupOfNames/member="cn=LDAPAdmins,ou=groups,ou=system,dc=mozillians,dc=org" write
 	by users self+w continue
 	by set="user/mozilliansVouchedBy" +dxcsr
         by users self+cs
@@ -156,7 +174,6 @@ access to dn.subtree="ou=tags,dc=mozillians,dc=org" attrs="member"
 
 # Mozillians can read all other attributes, but others may not
 access to dn.subtree="ou=tags,dc=mozillians,dc=org"
-	by group/groupOfNames/member="cn=LDAPAdmins,ou=groups,ou=system,dc=mozillians,dc=org" write
 	by set="user/mozilliansVouchedBy" read
         by * none
 

@@ -152,7 +152,7 @@ uniqueIdentifier: test-tag-002
 cn: Test Tag 002
 displayName: Test Tag 002
 description: Tag 002 used for testing - a controlled tag with one applicant and one Mozillian member
-mozilliansEditGroup: uniqueIdentifier=test-tag-001,ou=tags,dc=mozillians,dc=org
+manager: uniqueIdentifier=test-tag-001,ou=tags,dc=mozillians,dc=org
 member: uniqueIdentifier=test003,ou=people,dc=mozillians,dc=org
 member: uniqueIdentifier=test013,ou=people,dc=mozillians,dc=org
 

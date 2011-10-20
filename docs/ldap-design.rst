@@ -316,14 +316,16 @@ Mozillians.org supports a set of groups or tags that people can associate themse
 This allows people to show their interest in particular topics.
 
 Most groups are open, and any Mozillian or Applicant can add themselves.
-Some groups are controlled, and can only be edited by members of some other defined group
+Some groups are managed, and membership can only be changed by members of a defined 'manager' group
 (it would be wise to make that group a controlled group too!)
 
 Group/Tag entries look like this:
 
+```
     dn: uniqueIdentifier=ab83c301007f,ou=tags,dc=mozillians,dc=org
     objectClass: mozilliansGroup
     uniqueIdentifier: ab83c301007f
+    owner: uniqueIdentifier=7f3a67u000002,ou=people,dc=mozillians,dc=org
     cn: Dinosaur Food Group
     cn: Dinofood
     displayName: Dinosaur Food Group
@@ -333,6 +335,7 @@ Group/Tag entries look like this:
     member: uniqueIdentifier=7f3a67u000010,ou=people,dc=mozillians,dc=org
     member: uniqueIdentifier=7f3a67u000065,ou=people,dc=mozillians,dc=org
     member: uniqueIdentifier=7f3a67u000083,ou=people,dc=mozillians,dc=org
+```
 
 As with user entries, the DN is formed from a meaningless uniqueIdentifier.
 cn and displayName values will normally be identical. We use both to allow
@@ -340,15 +343,19 @@ for smooth renaming of tags: displayName holds the current name, while cn holds
 the current name and all past names so that people can still find tags that
 they used to know about.
 
-To make the group 'controlled' add a mozilliansEditGroup attribute with value(s)
+uniqueIdentifier cn and displayName are mandatory attributes.
+When creating an entry it is also necessary to set the owner attribute to the DN of
+the user creating it (or to the DN of a group that the user is a member of).
+
+To make the group 'managed' add a manager attribute with value(s)
 pointing to the group of users who may edit the group:
 
-    mozilliansEditGroup: uniqueIdentifier=000000000001,ou=tags,dc=mozillians,dc=org
+    manager: uniqueIdentifier=000000000001,ou=tags,dc=mozillians,dc=org
 
 The naming and descriptive attributes of a normal (open) group can only be changed
-by the person who created it.
+by the owner of the entry.
 
-All attributes in controlled groups can be changed by members of the controlling group
+All attributes in managed groups can be changed by members of the manager group
 (and not by anyone else).
 
 =================================
@@ -491,14 +498,14 @@ The 'T' codes are cross-references to the ACL test suite
  * T10010 All users including Anon may search and view the naming and descriptive attributes in Tag entries
  * T10015 Mozillians may search and view all attributes in Tag entries
  * T10020 Applicants may search for Tags that they are a member of but may not view the list of members
- * T10030 Controlled Tags may only be modified by members of the defined edit group for that tag
+ * T10030 Managed Tags may only be modified by members of the defined manager group for that tag
  * T10040 Members of a Tag's edit group may change any of its attributes to any legal value
  * T10050 Mozillians and Applicants may add their own DN to the list of members of an open tag
  * T10055 Mozillians and Applicants may delete their own DN from the list of members of an open tag
  * T10060 Mozillians may create new Tag entries
- * T10061 Mozillians may delete tags that they created
+ * T10061 Mozillians may delete tags that they own
  * T10065 Applicants may not create new Tag entries
- * T10070 ??? The naming and descriptive attributes of open tags may only be changed by the tag's creator or LDAPAdmin ???
+ * T10070 The naming and descriptive attributes of open tags may only be changed by the tag's owner or LDAPAdmin
 
  * Anything not already mentioned above is prohibited
 

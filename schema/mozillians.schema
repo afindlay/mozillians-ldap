@@ -39,10 +39,6 @@ attributetype ( 1.3.6.1.4.1.13769.3000.2.4 NAME 'mozilliansServiceID'
 	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
 	SINGLE-VALUE )
 
-attributetype ( 1.3.6.1.4.1.13769.3000.2.5 NAME 'mozilliansEditGroup'
-	DESC 'Group of accounts that can edit the entry it appears in'
-	SUP distinguishedName )
-
 ########################################################################
 # Object classes
 ########################################################################
@@ -79,6 +75,6 @@ objectclass ( 1.3.6.1.4.1.13769.3000.1.5 NAME 'mozilliansGroup'
 	DESC 'Mozillians Group: implements tags'
 	SUP top STRUCTURAL
 	MUST ( uniqueIdentifier $ cn $ displayName )
-	MAY ( mozilliansVisibility $ description $ member $ owner $ mozilliansEditGroup )
+	MAY ( mozilliansVisibility $ description $ member $ owner $ manager )
 	)
 

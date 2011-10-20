@@ -29,7 +29,7 @@ uniqueIdentifier: 00458b010abc
 cn: mozpaid
 displayName: Mozpaid
 description: Mozilla Employees
-mozilliansEditGroup: uniqueIdentifier=000000000001,ou=tags,dc=mozillians,dc=org
+manager: uniqueIdentifier=000000000001,ou=tags,dc=mozillians,dc=org
 member: uniqueIdentifier=7f3a67u000032,ou=people,dc=mozillians,dc=org
 member: uniqueIdentifier=7f3a67u000090,ou=people,dc=mozillians,dc=org
 member: uniqueIdentifier=7f3a67u000073,ou=people,dc=mozillians,dc=org
@@ -42,7 +42,7 @@ uniqueIdentifier: 000000000001
 cn: Big Moz
 displayName: Big Moz
 description: Big Powerful Mozillians - people who can control certain restricted tags
-mozilliansEditGroup: uniqueIdentifier=000000000001,ou=tags,dc=mozillians,dc=org
+manager: uniqueIdentifier=000000000001,ou=tags,dc=mozillians,dc=org
 member: uniqueIdentifier=1,ou=people,dc=mozillians,dc=org
 member: uniqueIdentifier=2,ou=people,dc=mozillians,dc=org
 

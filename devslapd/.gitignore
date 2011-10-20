@@ -3,3 +3,4 @@ schema
 slapd.args
 slapd.pid
 setup.sh
+*.swp
