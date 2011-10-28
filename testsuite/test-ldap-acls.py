@@ -304,6 +304,10 @@ class LdapUserTests(unittest.TestCase):
 		        (ldap.MOD_REPLACE,'telephoneNumber',['+1 234','+5-678-90']),
 		        (ldap.MOD_REPLACE,'description','modified description'),
 		        (ldap.MOD_REPLACE,'jpegPhoto','modified jpegPhoto'),
+		        (ldap.MOD_REPLACE,'c','nz'),
+		        (ldap.MOD_REPLACE,'st','Otago'),
+		        (ldap.MOD_REPLACE,'l','Quartz Reef'),
+		        (ldap.MOD_REPLACE,'postalCode','ZZ9plZalpha'),
 		    ]
 		)
         except ldap.LDAPError:
