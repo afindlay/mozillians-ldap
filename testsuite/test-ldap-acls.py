@@ -66,7 +66,8 @@ test_tag_1 = 'uniqueIdentifier=test-tag-001,ou=tags,dc=mozillians,dc=org'
 test_tag_2 = 'uniqueIdentifier=test-tag-002,ou=tags,dc=mozillians,dc=org'
 # Tag 3 is an open tag with bogus members
 test_tag_3 = 'uniqueIdentifier=test-tag-003,ou=tags,dc=mozillians,dc=org'
-# Tag 999 does not exist
+# Tag 99* does not exist
+test_tag_998 = 'uniqueIdentifier=test-tag-998,ou=tags,dc=mozillians,dc=org'
 test_tag_999 = 'uniqueIdentifier=test-tag-999,ou=tags,dc=mozillians,dc=org'
 
 # The root of the system part of the DIT
@@ -1221,6 +1222,44 @@ class LdapUserTests(unittest.TestCase):
 		))
 	# Make sure that we clear this entry up afterwards
 	entry_list.append(test_tag_999)
+
+
+    def test_T10062_mozillian_add_clashing_group(self):
+	try:
+	    self.ldap_mozillian011.add_s(
+		    test_tag_999,
+		    [
+			('objectClass', 'mozilliansGroup'),
+			('uniqueIdentifier', 'test-tag-999'),
+			('cn', 'Test Tag 999'),
+			('displayName', 'Test Tag 999'),
+			('description', 'test_T10062_mozillian_add_clashing_group'),
+			('owner', ldap_mozillian011DN),
+			('manager', test_tag_1)
+		    ]
+		)
+	    # Make sure that we clear this entry up afterwards
+	    entry_list.append(test_tag_999)
+        except ldap.LDAPError:
+	    self.fail( "Mozillian cannot add tag entry "+test_tag_999+" " + str(sys.exc_info()[0]) )
+
+	# Now try to add another group with the same displayName
+	self.assertRaises(ldap.CONSTRAINT_VIOLATION, lambda:\
+	    self.ldap_mozillian011.add_s(
+		    test_tag_998,
+		    [
+			('objectClass', 'mozilliansGroup'),
+			('uniqueIdentifier', 'test-tag-998'),
+			('cn', 'Test Tag 998 and 999'),
+			('displayName', 'Test Tag 999'),
+			('description', 'test_T10062_mozillian_add_clashing_group'),
+			('owner', ldap_mozillian011DN),
+			('manager', test_tag_1)
+		    ]
+		) )
+	# Make sure that we clear this entry up afterwards
+	entry_list.append(test_tag_998)
+
 
 
 class LdapMonitorUserTests(unittest.TestCase):

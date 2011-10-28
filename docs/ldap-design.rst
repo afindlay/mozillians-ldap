@@ -362,6 +362,9 @@ We use the *memberof* overlay to reflect group membership into user entries
 as *memberOf* attributes. These are not modifiable in the user entry, but they can
 make some searches much easier.
 
+We use the *unique* overlay to make sure that every tag has a unique
+displayName value.
+
 =================================
 Lookup Tables
 =================================
@@ -508,6 +511,7 @@ The 'T' codes are cross-references to the ACL test suite
  * T10055 Mozillians and Applicants may delete their own DN from the list of members of an open tag
  * T10060 Mozillians may create new Tag entries
  * T10061 Mozillians may delete tags that they own
+ * T10062 All groups must have unique displayName values
  * T10065 Applicants may not create new Tag entries
  * T10070 The naming and descriptive attributes of open tags may only be changed by the tag's owner or LDAPAdmin
 
