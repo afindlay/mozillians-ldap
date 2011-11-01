@@ -257,6 +257,8 @@ Attributes for user accounts
 * jpegPhoto
 * description - this would hold the Bio
 * mozilliansVouchedBy
+* labeledURI - pointers to websites
+* mozilliansDateStarted - when this person joined the project
 
 
 Some attributes will be required to have unique values, e.g. *uid*

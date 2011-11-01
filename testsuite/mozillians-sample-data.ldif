@@ -14,6 +14,7 @@ cn: Gervase Markham
 displayName: Gervase Markham
 userPassword: {SSHA}/Psb2o+/+Mke+n5yOQvG3puzFXwAzw6Z
 mail: gerv@mozilla.org
+labeledURI: http://www.gerv.net/ Gerv's Website
 l: London
 description: I solve community problems for Mozilla.
 jpegPhoto:: /9j/4AAQSkZJRgABAQAAAQABAAD//gA8Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcg
@@ -1476,6 +1477,9 @@ userPassword: {SSHA}vrWlixXSlHPmQrsRYIdYseyFK0rRWy6z
 description: LDAP designer
 mozilliansVouchedBy: uniqueIdentifier=1,ou=people,dc=mozillians,dc=org
 mail: andrew.findlay@skills-1st.co.uk
+labeledURI: http://www.andrew.findlay.org/ Andrew's personal pages
+labeledURI: http://www.skills-1st.co.uk/ Skills 1st consultancy
+mozilliansDateStarted: 201106130000Z
 uid: afindlay
 jpegPhoto:: /9j/4AAQSkZJRgABAQEASABIAAD//gAcQW5kcmV3IEZpbmRsYXkKMTcgTm92IDIwMT
  D/2wBDABYPEBMQDhYTEhMYFxYaIDYjIB4eIEIvMic2TkVSUU1FTEpWYXxpVlx1XUpMbJNtdYCEi4y

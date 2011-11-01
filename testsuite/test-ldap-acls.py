@@ -308,6 +308,8 @@ class LdapUserTests(unittest.TestCase):
 		        (ldap.MOD_REPLACE,'st','Otago'),
 		        (ldap.MOD_REPLACE,'l','Quartz Reef'),
 		        (ldap.MOD_REPLACE,'postalCode','ZZ9plZalpha'),
+		        (ldap.MOD_REPLACE,'labeledURI','http://my.web.site/ This one is mine!'),
+		        (ldap.MOD_REPLACE,'mozilliansDateStarted','197001010042Z'),
 		    ]
 		)
         except ldap.LDAPError:
